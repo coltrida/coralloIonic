@@ -1,0 +1,7 @@
+{
+  "name": "coralloTabs",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
