@@ -12,12 +12,12 @@
         </ion-toolbar>
       </ion-header>
 
-      <ExploreContainer name="Tab 2 page" />
+      <SchedaContainer />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import ExploreContainer from '@/components/ExploreContainer.vue';
+import SchedaContainer from "@/components/SchedaContainer";
 </script>
