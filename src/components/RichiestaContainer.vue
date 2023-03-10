@@ -1,4 +1,5 @@
 <template>
+  <h2 class="ion-padding">Richieste</h2>
   <ion-content class="ion-padding">
     <ion-item>
       <ion-label>Testo</ion-label>
@@ -25,7 +26,11 @@ export default {
   methods:{
     invia() {
       axios
-          .post('http://corallo.test/api/richiesta', this.elemento)
+          .post('http://corallo.test/api/richiesta', this.elemento, {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            }
+          })
           .then((response) => {
             this.openToast(response.data);
             this.elemento.testo = '';
