@@ -1,14 +1,4 @@
 <template>
-<!--  <ion-button @click="indietro(-1)">Settimana Prec.</ion-button>
-  <ion-button @click="avanti(1)">Settimana Succ.</ion-button>-->
-
-<!--  <ion-grid>
-    <ion-row>
-      <ion-col>Sett. di allenamento: {{ nrSettimane }}</ion-col>
-      <ion-col>Sett. attuale: {{ settimanaAttuale + 1 }}</ion-col>
-    </ion-row>
-  </ion-grid>-->
-
   <ion-grid>
     <ion-row class="ion-justify-content-between">
       <ion-col size="6">
