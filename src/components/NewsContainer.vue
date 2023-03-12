@@ -16,6 +16,7 @@
 <script>
 import axios from "axios";
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/vue';
+import Echo from "laravel-echo";
 export default {
   name: "NewsContainer",
   components: { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle },
@@ -25,6 +26,12 @@ export default {
     }
   },
   mounted() {
+    const echo = new Echo({broadcaster: 'pusher', key: '29024fb20b8c0948a154', cluster: 'eu',});
+    const channel = echo.channel('newsChannel');
+    channel.listen('.news-evento', () => {
+      this.caricaDati();
+    });
+
     this.caricaDati();
   },
   methods:{

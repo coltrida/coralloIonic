@@ -19,67 +19,90 @@
     </ion-row>
   </ion-grid>
 
-  <ion-list>
-    <ion-card v-for="ele in scheda" :key="ele.id">
-      <ion-card-header>
-        <ion-badge color="success" style="width: 100%">
-          <ion-card-title>{{ ele.giorno }}</ion-card-title>
-        </ion-badge>
-      </ion-card-header>
-      <ion-card-content class="ion-no-margin ion-no-padding">
-        <ion-card v-for="all in ele.allenamenti" :key="all" class="ion-no-margin">
-          <ion-card-header>
-            <ion-card-title  @click="$emit('mostraDettagli', all.esercizio_id)">{{ all.esercizio.nome }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-grid>
-              <ion-row>
-                <ion-col>
-                  <ion-card-subtitle>Serie: {{ all.serie }}</ion-card-subtitle>
-                  <ion-card-subtitle>Ripetizioni: {{ all.ripetizioni }}</ion-card-subtitle>
-                </ion-col>
-                <ion-col>
-                  <ion-item fill="outline">
-                    <ion-label position="stacked">Peso</ion-label>
-                    <ion-input type="number">{{all.peso}}</ion-input>
-                  </ion-item>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
+  <ion-card>
+    <ion-card-header>
+      <ion-select interface="popover" class="ion-padding" style="width: 100%" v-model="giornoSelezionato"
+                  @ionChange="cambiaGiorno">
+        <ion-select-option v-for="ele in giorniDiAllenamentoSelezionabili" :key="ele.id">
+          {{ ele.giorno }}
+        </ion-select-option>
+      </ion-select>
+    </ion-card-header>
+    <ion-card-content class="ion-no-margin ion-no-padding">
+      <ion-card v-for="(all, index) in giornoAllenamento" :key="all" class="ion-no-margin elementi">
+        <ion-card-header>
+          <ion-card-title @click="$emit('mostraDettagli', all.esercizio_id)">{{ all.esercizio.nome }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-grid>
+            <ion-row>
+              <ion-col>
+                <ion-card-subtitle>Serie: {{ all.serie }}</ion-card-subtitle>
+                <ion-card-subtitle>Ripetizioni: {{ all.ripetizioni }}</ion-card-subtitle>
+              </ion-col>
+              <ion-col>
+                <ion-item fill="outline">
+                  <ion-label position="stacked">Peso</ion-label>
+                  <ion-input type="number" @keyup="salvaPeso(all.id, index)" v-model="peso[index]"></ion-input>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+    </ion-card-content>
+  </ion-card>
 
-          </ion-card-content>
-        </ion-card>
-      </ion-card-content>
-    </ion-card>
-  </ion-list>
 </template>
 
 <script>
-import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonBadge,
-  IonList, IonButton, IonGrid, IonRow, IonCol, IonInput, IonItem, IonLabel} from "@ionic/vue";
+
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
+  IonButton, IonGrid, IonRow, IonCol, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
+} from "@ionic/vue";
 import Echo from "laravel-echo";
 import axios from "axios";
 
 export default {
   name: "SchedaComponent",
-  components: {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle, IonBadge,
-    IonList, IonButton, IonGrid, IonRow, IonCol, IonInput, IonItem, IonLabel},
+  components: {
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
+    IonButton, IonGrid, IonRow, IonCol, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
+  },
   props: ['id'],
   data() {
     return {
-      scheda: [],
+      giorniDiAllenamentoSelezionabili: [],
       nrSettimane: 0,
       settimanaAttuale: 0,
-      settimane:[]
+      settimane: [],
+      peso: [],
+      giornoSelezionato: '',
+      giornoDiOggi: '',
+      giornoAllenamento: {}
     }
   },
   mounted() {
+    //------- in ascolto di nuove schede o modifiche --------//
     const echo = new Echo({broadcaster: 'pusher', key: '29024fb20b8c0948a154', cluster: 'eu',});
     const channel = echo.channel('esercizioChannel');
     channel.listen('.esercizio-evento', () => {
       this.caricaDati();
     });
 
+    //------- calcoliamo il nome del giorno di oggi -------//
+    let giorno = new Date();
+    let weekdays = new Array(6);
+    weekdays[0] = "lunedi";
+    weekdays[1] = "martedi";
+    weekdays[2] = "mercoledi";
+    weekdays[3] = "giovedi";
+    weekdays[4] = "venerdi";
+    weekdays[5] = "sabato";
+    this.giornoDiOggi = weekdays[giorno.getDay() - 1];
+
+    //------------ carichiamo i dati della scheda ------------//
     this.caricaDati();
   },
   methods: {
@@ -87,21 +110,75 @@ export default {
       await axios
           .get('http://corallo.test/api/cliente/' + this.id)
           .then((response) => {
-            this.scheda = response.data.schedallenamento[0].settimanallenamento[this.settimanaAttuale].giorniallenamento;
-            this.nrSettimane = response.data.schedallenamento[0].settimanallenamento.length;
+            //----------------- carichiamo le settimane di allenamenti -----------------//
             this.settimane = response.data.schedallenamento[0].settimanallenamento;
+
+            //------------- carica i giorni di allenamento della scheda per la select ---------------------//
+            this.giorniDiAllenamentoSelezionabili = this.settimane[this.settimanaAttuale].giorniallenamento;
+
+            //------------------ carichiamo il numero di settimane di allenamenti --------//
+            this.nrSettimane = this.settimane.length;
+
+            //------- vediamo se oggi è un giorno presente nelle giornate di allenamento della settimana -----//
+            const isFound = this.settimane[this.settimanaAttuale].giorniallenamento.some(element => {
+              if (element.giorno === this.giornoDiOggi) {
+                return true;
+              }
+              return false;
+            });
+
+            // ---- se oggi è un giorno di allenamento selezioni il giorno nel menu a tendina e carichi il relativo allenamento ---- //
+            if (isFound) {
+              this.giornoSelezionato = this.giornoDiOggi;
+              this.giornoAllenamento = this.settimane[this.settimanaAttuale]
+                  .giorniallenamento.find(ele => ele.giorno === this.giornoDiOggi).allenamenti;
+            } else {
+
+              // ---- se oggi non è un giorno di allenamento selezioni il primo giorno di allenamento nel menu
+              // a tendina e carichi il relativo allenamento ---- //
+              this.giornoAllenamento = this.settimane[this.settimanaAttuale]
+                  .giorniallenamento[0].allenamenti;
+              this.giornoSelezionato = this.settimane[this.settimanaAttuale]
+                  .giorniallenamento[0].giorno;
+            }
+            this.peso = this.giornoAllenamento.map(a => a.peso);
           })
     },
-    avanti(direzione){
-      if (this.settimanaAttuale !== this.nrSettimane-1){
+
+    async salvaPeso(id, index) {
+      //console.log(this.peso[index]+' '+id)
+      let payload = {
+        'allenamentoId':id,
+        'peso': this.peso[index]
+      }
+      await axios
+          .patch('http://corallo.test/api/salvaPeso', payload)
+          .then(() => {
+              this.giornoAllenamento[index].peso = this.peso[index]
+          })
+      // alert(valore)
+    },
+
+    cambiaGiorno() {
+      this.giornoAllenamento = this.settimane[this.settimanaAttuale] ? this.settimane[this.settimanaAttuale]
+          .giorniallenamento.find(ele => ele.giorno === this.giornoSelezionato).allenamenti : [];
+      this.peso = this.giornoAllenamento.map(a => a.peso);
+    },
+
+    avanti(direzione) {
+      if (this.settimanaAttuale !== this.nrSettimane - 1) {
         this.settimanaAttuale += direzione;
-        this.scheda = this.settimane[this.settimanaAttuale].giorniallenamento;
+        this.giornoAllenamento = this.settimane[this.settimanaAttuale]
+            .giorniallenamento.find(ele => ele.giorno === this.giornoSelezionato).allenamenti;
+        this.peso = this.giornoAllenamento.map(a => a.peso);
       }
     },
-    indietro(direzione){
-      if (this.settimanaAttuale !== 0){
+    indietro(direzione) {
+      if (this.settimanaAttuale !== 0) {
         this.settimanaAttuale += direzione;
-        this.scheda = this.settimane[this.settimanaAttuale].giorniallenamento;
+        this.giornoAllenamento = this.settimane[this.settimanaAttuale]
+            .giorniallenamento.find(ele => ele.giorno === this.giornoSelezionato).allenamenti;
+        this.peso = this.giornoAllenamento.map(a => a.peso);
       }
     }
   },
@@ -110,4 +187,17 @@ export default {
 
 <style scoped>
 
+ion-select::part(text) {
+  color: #545ca7;
+  font-size: 40px;
+  border: 1px solid red;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: black 4px 4px 4px;
+}
+
+.elementi {
+  border: 3px solid white;
+  margin-top: 5px;
+}
 </style>
