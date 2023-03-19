@@ -11,14 +11,14 @@
           <ion-title size="large">Home</ion-title>
         </ion-toolbar>
       </ion-header>
-      <NewsContainer />
-      <RichiestaContainer />
+
+        <HomeComponent />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import RichiestaContainer from "@/components/RichiestaContainer";
-import NewsContainer from "@/components/NewsContainer";
+import HomeComponent from "@/components/home/HomeComponent";
+
 </script>

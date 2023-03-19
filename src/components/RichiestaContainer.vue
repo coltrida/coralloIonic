@@ -26,7 +26,7 @@ export default {
   methods:{
     invia() {
       axios
-          .post('http://corallo.test/api/richiesta', this.elemento, {
+          .post('https://www.coltricat.eu/api/richiesta', this.elemento, {
             headers: {
               "Access-Control-Allow-Origin": "*",
             }

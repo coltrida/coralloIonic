@@ -1,6 +1,6 @@
 <template>
   <ion-content class="ion-padding">
-    <SchedaComponent v-if="showScheda" @mostraDettagli="mostraDettagli" id="2"/>
+    <SchedaComponent v-if="showScheda" @mostraDettagli="mostraDettagli" :id="idUser"/>
     <DettaglioComponent :idEse="idEsercizio" v-else @mostraScheda="mostraScheda"/>
   </ion-content>
 </template>
@@ -15,7 +15,8 @@ export default {
   data(){
     return {
       showScheda: true,
-      idEsercizio:0
+      idEsercizio:0,
+      idUser: localStorage.getItem('userId')
     }
   },
   methods:{

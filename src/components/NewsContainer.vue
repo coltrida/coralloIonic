@@ -37,7 +37,7 @@ export default {
   methods:{
     async caricaDati() {
       await axios
-          .get('http://corallo.test/api/ultimaNews/')
+          .get('https://www.coltricat.eu/api/ultimaNews')
           .then((response) => {
             this.news = response.data;
           })
@@ -45,7 +45,7 @@ export default {
   },
   computed:{
     calcolaLink() {
-      return this.news.linkFoto ? 'http://corallo.test/storage/' + this.news.linkFoto : 'https://ionicframework.com/docs/img/demos/thumbnail.svg'
+      return this.news.linkFoto ? 'https://www.coltricat.eu/storage/' + this.news.linkFoto : 'https://ionicframework.com/docs/img/demos/thumbnail.svg'
     }
   }
 }
